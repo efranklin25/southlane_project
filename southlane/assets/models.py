@@ -7,7 +7,7 @@ from users.models import User
 ## Categories must end in an (Object) type which then serves as the "template" for the subsequent Asset objects which are all unique ##
 
 class Category(MP_Node):
-	name = models.CharField(max_length=100)
+	name = models.CharField(max_length=100, blank=False, null=False)
 	node_order_by = ['name']
 
 	parent_category = models.ForeignKey(Category, blank=True) # If Category has no parent, it is a prime category
@@ -16,27 +16,35 @@ class Category(MP_Node):
 			('SUB', 'Sub-Catagory'),
 			('OBJ', 'Asset')
 		)
-	_type = models.CharField(max_length=15, choices=TYPE_CHOICES, default='OBJ')
-	description = models.CharField(max_length=500)
-	ISBN = models.CharField(max_length=13)
-	model_number = models.CharField(max_length=100) 
-	publish_date = models.DateFIeld()
-	edition = models.CharField(max_length=50)
-	author = models.CharField(max_length=300)
-	publisher = models.CharField(max_length=300)
-	vendor = models.CharField(max_length=300)
-	value = models.DecimalField(max_digits=None, decimal_places=2)
-	picture = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100)	
+	_type = models.CharField(max_length=15, choices=TYPE_CHOICES, default='OBJ', blank=False, null=False)
+	description = models.CharField(max_length=500, blank=True)
+	features = models.CharField(max_length=300, blank=True)
+	ISBN = models.CharField(max_length=13, blank=True)
+	model_number = models.CharField(max_length=100, blank=True) 
+	publish_date = models.DateFIeld(blank=True)
+	edition = models.CharField(max_length=50, blank=True)
+	author = models.CharField(max_length=300, blank=True)
+	publisher = models.CharField(max_length=300, blank=True)
+	vendor = models.CharField(max_length=300, blank=True)
+	value = models.DecimalField(max_digits=None, decimal_places=2, blank=True)
+	picture = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100, blank=True)	
 	current = models.BooleanField() # Is this asset the most current, or is it out of date
 	admin = models.ForiegnKey(User, blank=True) # If blank or null, then category must inhertit admin from parent category, prime category must have admin
+	consumables = models.ManyToManyField(Consumable, blank=True) #do i use null or blank?
+
+	def __str__(self):
+		if _type == 'PRIME' or 'SUB':
+			return 'Category: %s' % self.name
+		else:
+			return 'Asset Type: %s' % self.name
+
 
 class Asset(models.Model):
 	active = models.BooleanField()
-	asset_tag = models.CharField(db_index=True, max_length=10, primary_key=True)
-	category = models.ForiegnKey(Category)
-	feature = models.CharField(max_length=200)
-	name = models.CharField(max_length=300)
-	serial_number = models.CharField(max_length=100)
+	asset_tag = models.CharField(db_index=True, max_length=10, primary_key=True, null=False, blank=False)
+	category = models.ForiegnKey(Category, blank=False, null=False)
+	name = models.CharField(max_length=300, blank=False, null=False)
+	serial_number = models.CharField(max_length=100, blank=True)
 	CONDITION_CHOICES = (
 			('10', 'New'),
 			('8', 'Great'),
@@ -45,9 +53,8 @@ class Asset(models.Model):
 			('2', 'Poor'),
 			('0', 'Terrible')
 		)
-	condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default='10')
+	condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default='10', blank=True)
 	possession = models.ForeignKey(User, blank=True) #Who has the asset right now
-	consumables = models.ManyToManyField(Consumable)
 
 	def __str__(self):
 		return "%s %s" % (self.asset_tag, self.name)
@@ -55,15 +62,15 @@ class Asset(models.Model):
 
 class Consumable(models.Model):
 	active = models.BooleanField()
-	asset_tag = models.CharField(db_index=True, max_length=10, primary_key=True)
-	inventory = models.IntegerField()
-	name = models.CharField(max_length=300)
-	description = models.TextField(max_length=500)
-	picture = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100)		
-	author = models.CharField(max_length=300)
-	publisher = models.CharField(max_length=300)
-	model_number = models.CharField(max_length=100)
-	value = models.DecimalField(max_digits=None, decimal_places=2)
+	asset_tag = models.CharField(db_index=True, max_length=10, primary_key=True, blank=False, null=False)
+	inventory = models.IntegerField(blank=False, null=False)
+	name = models.CharField(max_length=300, blank=False, null=False)
+	description = models.TextField(max_length=500, blank=True)
+	picture = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100, blank=True)		
+	author = models.CharField(max_length=300, blank=True)
+	publisher = models.CharField(max_length=300, blank=True)
+	model_number = models.CharField(max_length=100, blank=True)
+	value = models.DecimalField(max_digits=None, decimal_places=2, blank=True)
 	asset = models.ManyToManyField(Category)
 
 	def __str__(self):
