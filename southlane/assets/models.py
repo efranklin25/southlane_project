@@ -33,10 +33,10 @@ class Category(MP_Node):
 	consumables = models.ManyToManyField(Consumable, blank=True) #do i use null or blank?
 
 	def __str__(self):
-		if _type == 'PRIME' or 'SUB':
-			return 'Category: %s' % self.name
-		else:
+		if self._type == 'OBJ':
 			return 'Asset Type: %s' % self.name
+		else:
+			return 'Category: %s' % self.name
 
 
 class Asset(models.Model):
